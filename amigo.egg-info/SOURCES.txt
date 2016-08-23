@@ -1,0 +1,13 @@
+MANIFEST.in
+setup.py
+amigo/IO.py
+amigo/__init__.py
+amigo/addtext.py
+amigo/geom.py
+amigo/png_tools.py
+amigo/surface.py
+amigo.egg-info/PKG-INFO
+amigo.egg-info/SOURCES.txt
+amigo.egg-info/dependency_links.txt
+amigo.egg-info/not-zip-safe
+amigo.egg-info/top_level.txt

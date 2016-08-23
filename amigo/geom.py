@@ -19,3 +19,20 @@ def space(R,Z,npoints):
     R,Z = interp1d(L,R)(l),interp1d(L,Z)(l)
     return R,Z
     
+def rotate(theta):
+    Rz = np.array([[np.cos(theta),-np.sin(theta),0],
+                   [np.sin(theta),-np.cos(theta),0],
+                   [0,0,1]])
+    return Rz
+    
+def normal(R,Z):
+    dR,dZ = np.gradient(R),np.gradient(Z)
+    mag = np.sqrt(dR**2+dZ**2)
+    index = mag>0
+    dR,dZ,mag = dR[index],dZ[index],mag[index]  # clear duplicates
+    R,Z = R[index],Z[index]
+    t = np.zeros((len(R),3))
+    t[:,0],t[:,1] = dR/mag,dZ/mag
+    n = np.cross(t, [0,0,1])
+    nR,nZ = n[:,0],n[:,1]
+    return (nR,nZ)
