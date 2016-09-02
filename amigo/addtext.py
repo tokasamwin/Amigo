@@ -44,7 +44,6 @@ class linelabel(object):
         self.index += 1
         
     def space(self,yo):
-        print(yo[0])
         y = np.copy(yo)
         y[1:] = yo[0]+np.cumsum(yo[1:])
         return y
@@ -61,7 +60,6 @@ class linelabel(object):
             ax = pl.gca()
         else:
             ax = self.ax
-        xticks = ax.get_xticks()
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
         if not xscale:

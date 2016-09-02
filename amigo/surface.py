@@ -10,8 +10,8 @@ class bernstein(object):
         self.n = n
         self.knots()
         
-    def basis(self,n,v,t):
-        return bn(n,v)*t**v*(1-t)**(n-v)
+    def basis(self,v):
+        return bn(self.n,v)*self.t**v*(1-self.t)**(self.n-v)
     
     def knots(self,v=[]):
         self.A = np.array(np.zeros((len(self.t),self.n+1)))
@@ -20,7 +20,7 @@ class bernstein(object):
         v[v>self.n] = self.n
         v[v<0] = 0
         for i,vv in enumerate(v):
-            self.A[:,i] = self.basis(self.n,vv,self.t)
+            self.A[:,i] = self.basis(vv)
             
     def fit(self,data):
         self.data = data
