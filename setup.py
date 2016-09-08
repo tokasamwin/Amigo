@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='amigo',
-      version='0.0.1',
+      version='0.0.2',
       description='equlibrium tools',
       url='https://github.com/twistersi/Amigo',
       author='Simon McIntosh',
