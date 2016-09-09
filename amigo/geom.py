@@ -3,11 +3,14 @@ from scipy.interpolate import interp1d
 from scipy.interpolate import UnivariateSpline as spline
 import pylab as pl
 
-def theta_sort(R,Z,xo,origin='lfs'):
+def theta_sort(R,Z,origin='lfs',**kwargs):
+    xo = kwargs.get('xo',(np.mean(R),np.mean(Z)))
     if origin == 'lfs':
         theta = np.arctan2(Z-xo[1],R-xo[0])
     elif origin == 'top':
-        theta = np.arctan2(xo[0]-R,Z-xo[1])
+        theta = np.arctan2(xo[0]-R,Z-xo[1]) 
+    if kwargs.get('unwrap',False):
+        theta = np.unwrap(theta)
     index = np.argsort(theta)
     R,Z = R[index],Z[index]
     return R,Z
@@ -48,11 +51,9 @@ def rzSLine(R,Z,npoints=500,s=0,Hres=False):
         
 def rzInterp(R,Z,npoints=500,ends=True):
     L = length(R,Z)
-    Linterp = np.linspace(0,1,npoints)
+    Linterp = np.linspace(0,1,npoints,endpoint=ends)
     R = interp1d(L,R)(Linterp)
     Z = interp1d(L,Z)(Linterp)
-    if not ends:
-        R,Z = R[:-1],Z[:-1]
     return R,Z
     
 def rzfun(R,Z):  # return interpolation functions
@@ -209,6 +210,72 @@ class Loop(object):
                 tblend[blend_index] = dt[0]+(dt[1]-dt[0])/dref*(L[blend_index]-
                                                                 ref_o)
         return tblend
-        
+    
+def split_loop(r,z,xo,half):
+    if 'upper' in half:
+        index = z >= xo[1]
+    elif 'lower' in half:
+        index = z <= xo[1]
+    else:
+        errtxt = '\n'
+        errtxt += 'specify loop segment [\'upper\',\'lower\']\n'
+        raise ValueError(errtxt)
+    r,z = r[index],z[index]
+    r,z = theta_sort(r,z,xo=xo)  
+    return r,z
+   
+def trim_loop(r,z):
+    n = len(r)
+    index = np.ones(n,dtype=bool)
+    for i in range(n-2):
+        if r[i+1] <= r[i]:
+            index[i+1] = False
+        else:
+            index[i+1] = True  
+        if index[i+1] and not index[i]:  # keep corner
+            index[i] = True
+    r,z = r[index],z[index]
+    if r[0] > r[1]:
+        r[0] = r[1]-1e-6
+    if r[-1] < r[-2]:
+        r[-1] = r[-2]+1e-6
+    return r,z
+    
+def process_loop(r,z):
+    xo = (np.mean(r),z[np.argmax(r)])
+    r1,z1 = split_loop(r,z,xo,'upper')
+    ro,zo = split_loop(r,z,xo,'lower')
+    r1 = np.append(ro[-1],r1)  # join upper
+    r1 = np.append(r1,ro[0])
+    z1 = np.append(zo[-1],z1)
+    z1 = np.append(z1,zo[0])
+    ro,zo = trim_loop(ro,zo)
+    r1,z1 = trim_loop(r1[::-1],z1[::-1])
+    return (ro,zo),(r1,z1)
+    
+def fill_loop(part,color=0.75*np.ones(3),npoints=200):
+    loops = {}
+    for loop,side in zip(part,['out','in']):
+        r,z = read_loop(part,loop,npoints=npoints)
+        lower,upper = process_loop(r,z)
+        loops[side] = {'lower':{'r':lower[0],'z':lower[1]},
+                       'upper':{'r':upper[0],'z':upper[1]}}               
+    for half in ['upper','lower']:
+        for x in ['r','z']:
+            loops['in'][half][x] = np.append(loops['in'][half][x],
+                                             loops['out'][half][x][-1])
+            loops['in'][half][x] = np.append(loops['out'][half][x][0],
+                                             loops['in'][half][x])
+        fin = interp1d(loops['in'][half]['r'],loops['in'][half]['z'])
+        fout = interp1d(loops['out'][half]['r'],loops['out'][half]['z'])
+        r = np.linspace(loops['in'][half]['r'][0],
+                        loops['in'][half]['r'][-1],10*npoints)
+        r[1],r[-2] = r[0]+1e-8,r[-1]-1e-8  # capture corners
+        pl.fill_between(r,fin(r),fout(r),lw=0,color=color)
+                
+    for loop,_ in zip(part,['out','in']):  # extract outline
+        r,z = theta_sort(part[loop]['r'],part[loop]['z'])
+        r,z = np.append(r,r[0]),np.append(z,z[0])
+        pl.plot(r,z,color=0.5*np.ones(3),lw=1.5)
  
         
