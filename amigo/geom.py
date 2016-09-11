@@ -2,6 +2,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.interpolate import UnivariateSpline as spline
 import pylab as pl
+import scipy as sp
 
 def theta_sort(R,Z,origin='lfs',**kwargs):
     xo = kwargs.get('xo',(np.mean(R),np.mean(Z)))
@@ -122,10 +123,10 @@ def offset(R,Z,dR):
    
 class Loop(object):
     
-    def __init__(self,R,Z,xo):
+    def __init__(self,R,Z,**kwargs):
         self.R = R
         self.Z = Z
-        self.xo = xo
+        self.xo = kwargs.get('xo',(np.mean(R),np.mean(Z)))
     
     def rzPut(self):
         self.Rstore,self.Zstore = self.R,self.Z
@@ -210,6 +211,13 @@ class Loop(object):
                 tblend[blend_index] = dt[0]+(dt[1]-dt[0])/dref*(L[blend_index]-
                                                                 ref_o)
         return tblend
+        
+    def trim(self,trim,R,Z):
+        L = length(R,Z,norm=True)
+        index = []
+        for t in trim:
+            index.append(np.argmin(np.abs(L-t)))
+        return index
     
 def split_loop(r,z,xo,half):
     if 'upper' in half:
@@ -253,6 +261,14 @@ def process_loop(r,z):
     r1,z1 = trim_loop(r1[::-1],z1[::-1])
     return (ro,zo),(r1,z1)
     
+def read_loop(part,loop,npoints=100,close=True):
+    r,z = part[loop]['r'],part[loop]['z']
+    if len(r) > 0:
+        r,z = theta_sort(r,z)  # sort azimuth
+        if close:
+            r,z = np.append(r,r[0]),np.append(z,z[0])  # close loop
+    return r,z
+    
 def fill_loop(part,color=0.75*np.ones(3),npoints=200):
     loops = {}
     for loop,side in zip(part,['out','in']):
@@ -277,5 +293,19 @@ def fill_loop(part,color=0.75*np.ones(3),npoints=200):
         r,z = theta_sort(part[loop]['r'],part[loop]['z'])
         r,z = np.append(r,r[0]),np.append(z,z[0])
         pl.plot(r,z,color=0.5*np.ones(3),lw=1.5)
+        
+def point_loop(r,z):
+    n = len(r)
+    r_,z_ = np.zeros(n),np.zeros(n)
+    i = np.argmin(z)
+    r_[0],z_[0] = r[i],z[i]
+    for i in range(n-1):
+        dr = sp.linalg.norm([r-r_[i],z-z_[i]],axis=0)
+        j = np.argmin(dr)
+        r_[i+1],z_[i+1] = r[j],z[j]
+        r,z = np.delete(r,j),np.delete(z,j)
+    r,z = r_,z_
+    r,z = np.append(r,r[0]),np.append(z,z[0])
+    return r,z
  
         
