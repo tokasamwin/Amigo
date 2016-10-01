@@ -368,7 +368,7 @@ def polyfill(r,z,color=0.5*np.ones(3),alpha=1):
     ax.add_collection(coll)
     ax.autoscale_view()
     
-def polyloopfill(xin,xout,color=0.5*np.ones(3),alpha=1):
+def polyparrot(xin,xout,color=0.5*np.ones(3),alpha=1):  # polyloopfill
     r,z = polyloop(xin,xout)
     polyfill(r,z,color=color,alpha=alpha)
         
