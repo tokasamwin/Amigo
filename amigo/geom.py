@@ -221,7 +221,7 @@ class Loop(object):
     def fill(self,trim=None,dR=0,dt=0,ref_o=4/8*np.pi,dref=np.pi/4,
              edge=True,ends=True,
              color='k',label=None,alpha=0.8,referance='theta',part_fill=True,
-             loop=False,s=0,gap=0,plot=True):
+             loop=False,s=0,gap=0,plot=False):
         dt_max = 2.5
         if not part_fill:
             dt_max = dt
@@ -232,13 +232,16 @@ class Loop(object):
         Rin,Zin = offset(self.R,self.Z,dR)  # gap offset
         for i in range(nt):
             self.part_fill(trim=trim,dt=dt,ref_o=ref_o,dref=dref,
-             edge=edge,ends=ends,color=color,label=label,alpha=alpha,
-             referance=referance,loop=loop,s=s,plot=plot)
+                           edge=edge,ends=ends,color=color,label=label,alpha=alpha,
+                           referance=referance,loop=loop,s=s,plot=False)
+        Rout,Zout = self.R,self.Z
+        polyparrot({'r':Rin,'z':Zin},{'r':Rout,'z':Zout},
+                   color=color,alpha=1)  # fill
              
     def part_fill(self,trim=None,dt=0,ref_o=4/8*np.pi,dref=np.pi/4,
              edge=True,ends=True,
              color='k',label=None,alpha=0.8,referance='theta',loop=False,
-             s=0,plot=True):
+             s=0,plot=False):
         Rin,Zin = self.R,self.Z
         if loop:
             Napp = 5  # Nappend
