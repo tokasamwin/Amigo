@@ -29,6 +29,11 @@ def vol_calc(R,Z):
     V *= np.pi
     return V
     
+def unique(R,Z):
+    L = geom.length(R,Z)
+    io = np.append(np.diff(L)>0,True)  # remove duplicates
+    return R[io],Z[io],L[io]
+    
 def order(R,Z,anti=True):
     rc,zc = (np.mean(R),np.mean(Z))  
     theta = np.unwrap(np.arctan2(Z-zc, R-rc))
@@ -167,7 +172,13 @@ def normal(R,Z):
     nR,nZ = n[:,0],n[:,1]
     return nR,nZ,R,Z
     
-def inloop(Rloop,Zloop,R,Z):
+def inloop(Rloop,Zloop,R,Z,side='in'):
+    if side == 'in':
+        sign = 1
+    elif side == 'out':
+        sign = -1
+    else:
+        raise ValueError('define side, \'in\' or \'out\'')
     Rloop,Zloop = clock(Rloop,Zloop)
     nRloop,nZloop,Rloop,Zloop = normal(Rloop,Zloop)
     Rin,Zin = np.array([]),np.array([])
@@ -176,14 +187,14 @@ def inloop(Rloop,Zloop,R,Z):
             i = np.argmin((r-Rloop)**2+(z-Zloop)**2)
             dr = [Rloop[i]-r,Zloop[i]-z]  
             dn = [nRloop[i],nZloop[i]]
-            if np.dot(dr,dn) > 0:
+            if sign*np.dot(dr,dn) > 0:
                 Rin,Zin = np.append(Rin,r),np.append(Zin,z)
         return Rin,Zin
     else:
         i = np.argmin((R-Rloop)**2+(Z-Zloop)**2)
         dr = [Rloop[i]-R,Zloop[i]-Z]  
         dn = [nRloop[i],nZloop[i]]
-        return np.dot(dr,dn) > 0
+        return sign*np.dot(dr,dn) > 0
     
 def max_steps(dR,dr_max):
     dRbar = np.mean(dR)
@@ -235,8 +246,10 @@ class Loop(object):
                            edge=edge,ends=ends,color=color,label=label,alpha=alpha,
                            referance=referance,loop=loop,s=s,plot=False)
         Rout,Zout = self.R,self.Z
-        polyparrot({'r':Rin,'z':Zin},{'r':Rout,'z':Zout},
-                   color=color,alpha=1)  # fill
+        if plot:
+            polyparrot({'r':Rin,'z':Zin},{'r':Rout,'z':Zout},
+                       color=color,alpha=1)  # fill
+        return Rout,Zout
              
     def part_fill(self,trim=None,dt=0,ref_o=4/8*np.pi,dref=np.pi/4,
              edge=True,ends=True,

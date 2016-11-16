@@ -1,5 +1,20 @@
 from subprocess import Popen, PIPE
 from shlex import split
+import os.path
+
+def trim_dir(check_dir):
+    nlevel,dir_found = 3,False
+    for i in range(nlevel):
+        if os.path.isdir(check_dir):
+            dir_found = True
+            break
+        else:
+            if '../' in check_dir:
+                check_dir = check_dir.replace('../','',1)
+    if not dir_found:
+        errtxt = check_dir+' not found\n'
+        raise ValueError(errtxt)
+    return check_dir
 
 def qsub(script,jobname='analysis',t=1,freiahost=1,
          verbose=True,Code='Nova'):
@@ -10,7 +25,7 @@ def qsub(script,jobname='analysis',t=1,freiahost=1,
              
     if '.py' not in script:
         script += '.py'
-    wd = 
+    #wd = 
     py3 = '~/Code/anaconda3/bin/python3'
     flags =  '-V -N {} -j y -wd -S {}'.format(jobname,wd,py3)
     if t > 1:
