@@ -114,14 +114,14 @@ class sample_plot(object):
             self.x_o = self.x_origin.get_xydata()[0]
             self.x_o[1] = -self.x_o[1]
             self.y_o = self.x_o
-            self.x_scale = (self.x_fig[1]-self.x_fig[0]) / (x_ref-self.x_o[0])
+            self.x_scale = (self.x_fig[1]-self.x_fig[0])/(x_ref-self.x_o[0])
             self.y_scale = self.x_scale
         elif self.ax_eq == -1:  # referance from y-dir
             y_ref = -self.y_ref.get_xydata()[0][1]
             self.y_o = self.y_origin.get_xydata()[0]
             self.y_o[1] = -self.y_o[1]
             self.x_o = self.y_o
-            self.y_scale = (self.y_fig[1]-self.y_fig[0]) / (y_ref-self.y_o[1])
+            self.y_scale = (self.y_fig[1]-self.y_fig[0])/(y_ref-self.y_o[1])
             self.x_scale = self.y_scale
         else:  # referance from x and y
             x_ref = self.x_ref.get_xydata()[0][0]
@@ -130,8 +130,8 @@ class sample_plot(object):
             self.x_o[1] = -self.x_o[1]
             self.y_o = self.y_origin.get_xydata()[0]
             self.y_o[1] = -self.y_o[1]
-            self.x_scale = (self.x_fig[1]-self.x_fig[0]) / (x_ref-self.x_o[0])
-            self.y_scale = (self.y_fig[1]-self.y_fig[0]) / (y_ref-self.y_o[1])
+            self.x_scale = (self.x_fig[1]-self.x_fig[0])/(x_ref-self.x_o[0])
+            self.y_scale = (self.y_fig[1]-self.y_fig[0])/(y_ref-self.y_o[1])
             
     def store_data(self):
         data = self.data.get_xydata()
@@ -139,17 +139,16 @@ class sample_plot(object):
         y = -data[:,1]
         x = self.x_scale*(x-self.x_o[0])+self.x_fig[0]
         y = self.y_scale*(y-self.y_o[1])+self.y_fig[0]
-        
-    
         if self.xscale == 'log':
             x = log2lin(x,self.x_fig)
         if self.yscale == 'log':
             y = log2lin(y,self.y_fig)
-        
+        points = {'x':x,'y':y}
         limits = {}
         for var in ['x_o','x_scale','x_fig','y_o','y_scale','y_fig']:
             limits[var] = getattr(self,var)
         with open(self.folder+self.file, 'wb') as output:
+                pickle.dump(points,output,-1)
                 pickle.dump(data,output,-1)
                 pickle.dump(limits,output,-1)
  
@@ -157,7 +156,7 @@ def data_mine(path,file,**kw):
     from matplotlib import pyplot as plt
     from amigo.png_tools import sample_plot
     import matplotlib.image as mpimg
-    
+    label = kw.get('label','')
     if 'scale' in kw:
         scale = kw.get('scale')
         xscale = scale
@@ -171,7 +170,6 @@ def data_mine(path,file,**kw):
             yscale = kw.get('scale')
         else:
             yscale = 'linear'
-  
     x_fig = kw['xlim']
     y_fig = kw['ylim']
     ax_eq = 0
@@ -198,23 +196,25 @@ def data_mine(path,file,**kw):
         ax.set_title('select x-origin (x='+str(x_fig[0])+')')
     
     #default markers
-    data, = ax.plot([0], [0], 'gs-')
-    x_origin, = ax.plot([0], [0], 'ro') 
-    y_origin, = ax.plot([0], [0], 'bo') 
-    x_ref, = ax.plot([0], [0], 'rx') 
-    y_ref, = ax.plot([0], [0], 'bx')
+    data, = ax.plot([0],[0],'gs-')
+    x_origin, = ax.plot([0],[0],'ro') 
+    y_origin, = ax.plot([0],[0],'bo') 
+    x_ref, = ax.plot([0],[0],'rx') 
+    y_ref, = ax.plot([0],[0],'bx')
 
-    sample_plot = sample_plot(data, x_origin, y_origin, x_ref, y_ref, x_fig, y_fig,
-                              ax_eq, ax, fig, path, file,
+    sample_plot = sample_plot(data,x_origin,y_origin,x_ref,y_ref,x_fig,y_fig,
+                              ax_eq,ax,fig,path,file+'_'+label,
                               xscale=xscale,yscale=yscale)
 
-def data_load(path,file,date):
+def data_load(path,file,**kwargs):
+    date = kwargs.get('date',datetime.date.today().strftime('%Y_%m_%d'))
+    label = kwargs.get('label','')
     file = stripfile(file)
-    with open(path+'imagedata/'+date+'_'+file+'.pkl', 'rb') as input:
-                data = pickle.load(input)
-                limits = pickle.load(input)
-                
-    return data
+    with open(path+'imagedata/'+date+'_'+file+'_'+label+'.pkl', 'rb') as input:
+                points = pickle.load(input)
+                #data = pickle.load(input)
+                #limits = pickle.load(input)
+    return points
 
 
 

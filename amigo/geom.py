@@ -160,6 +160,16 @@ def rotate(theta,axis='z'):
         raise ValueError(errtxt)
     return R
     
+def rotate2D(theta,xo=0,yo=0,dx=0,dy=0):
+    R = np.array([[np.cos(theta),-np.sin(theta),0],
+                  [np.sin(theta),np.cos(theta),0],
+                  [0,0,1]])
+    To = np.array([[1,0,-xo],[0,1,-yo],[0,0,1]])
+    T1 = np.array([[1,0,xo+dx],[0,1,yo+dy],[0,0,1]])
+    TRT = np.dot(T1,np.dot(R,To))[:2,:]
+    return R[:2,:2],TRT
+    
+    
 def normal(R,Z):
     dR,dZ = np.gradient(R),np.gradient(Z)
     mag = np.sqrt(dR**2+dZ**2)
@@ -233,7 +243,7 @@ class Loop(object):
              edge=True,ends=True,
              color='k',label=None,alpha=0.8,referance='theta',part_fill=True,
              loop=False,s=0,gap=0,plot=False):
-        dt_max = 2.5
+        dt_max = 0.1  # 2.5
         if not part_fill:
             dt_max = dt
         if isinstance(dt,list):
