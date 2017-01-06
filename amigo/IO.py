@@ -2,6 +2,10 @@ from subprocess import Popen, PIPE
 from shlex import split
 import os.path
 
+def class_dir(name):
+    root = name.__path__[0]
+    return root
+
 def trim_dir(check_dir):
     nlevel,dir_found = 3,False
     for i in range(nlevel):
