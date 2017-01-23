@@ -13,8 +13,8 @@ def edge(index, Narray):
     return on_edge
 
 class table(object):
-    def __init__(self, filename):
-        f = open(filename+'.lib', 'w')         
+    def __init__(self,filename,ext='.lib'):
+        f = open(filename+ext, 'w')         
         self.f = f
         
     def nop(self):

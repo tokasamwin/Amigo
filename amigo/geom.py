@@ -5,7 +5,6 @@ import pylab as pl
 import scipy as sp
 from matplotlib.collections import PolyCollection
 import collections
-from amigo import geom
 
 def loop_vol(R,Z,plot=False):
     imin,imax = np.argmin(Z),np.argmax(Z)
@@ -30,7 +29,7 @@ def vol_calc(R,Z):
     return V
     
 def unique(R,Z):
-    L = geom.length(R,Z)
+    L = length(R,Z)
     io = np.append(np.diff(L)>0,True)  # remove duplicates
     return R[io],Z[io],L[io]
     
@@ -51,7 +50,7 @@ def clock(R,Z,reverse=True):  # order loop points in anti-clockwise direction
     radius,theta = radius[index],theta[index] 
     R,Z = rc+radius*np.cos(theta),zc+radius*np.sin(theta)
     R,Z = np.append(R,R[0]),np.append(Z,Z[0])
-    R,Z = geom.rzSLine(R,Z,npoints=len(R)-1)
+    R,Z = rzSLine(R,Z,npoints=len(R)-1)
     if reverse:
         R,Z = R[::-1],Z[::-1]
     return R,Z
